@@ -2,7 +2,7 @@
   "name": "microservicio-creacion-cursos",
   "version": "1.0.0",
   "description": "Microservicio para la creación automática de cursos con IA",
-  "main": "server.js",
+  "main": "crearCurso.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",

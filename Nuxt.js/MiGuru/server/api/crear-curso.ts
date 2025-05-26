@@ -1,7 +1,6 @@
 import { defineEventHandler, readBody } from 'h3';
 import { connectDB } from '../utils/mongoose';
-import {ejecutarCreacionCurso} from 'C:/Users/Gaelp/Documents/UABC/IS/creacionCursos.js/MicroservicioCreacionCursos/crearCurso';
-
+import {ejecutarCreacionCurso} from 'microservicio-creacion-cursos';
 
 export default defineEventHandler(async (event) => {
   try {
