@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "titulo": "Crea cursos impactantes con IA",
+    "subtitulo": "MiGuru te ayuda a generar cursos completos, estructurados y atractivos en minutos gracias a la inteligencia artificial.",
+    "registrarse": "Registrarse",
+    "iniciarSesion": "Iniciar sesión"
+  },
+  "beneficios": {
+    "titulo": "¿Por qué elegir MiGuru?",
+    "iaTitulo": "Constructor de cursos con IA",
+    "iaTexto": "Escribe el tema y deja que MiGuru cree la estructura, lecciones, videos y exámenes en segundos.",
+    "exportarTitulo": "Exporta e integra",
+    "exportarTexto": "Exporta a tu LMS o integra con plataformas como Moodle, Notion o Teachable.",
+    "personalizarTitulo": "Personalizable y escalable",
+    "personalizarTexto": "Ajusta el contenido generado, añade medios y adapta tus cursos a cualquier audiencia."
+  }
+}

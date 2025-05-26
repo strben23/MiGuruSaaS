@@ -1,0 +1,17 @@
+{
+  "hero": {
+    "titulo": "Create stunning courses with AI",
+    "subtitulo": "MiGuru helps you generate complete, structured and engaging courses in minutes with the power of AI.",
+    "registrarse": "Sign Up",
+    "iniciarSesion": "Login"
+  },
+  "beneficios": {
+    "titulo": "Why choose MiGuru?",
+    "iaTitulo": "AI-powered course builder",
+    "iaTexto": "Enter your course topic and let MiGuru build the structure, lessons, videos and quizzes in seconds.",
+    "exportarTitulo": "Export & Integrate",
+    "exportarTexto": "Export to your LMS or integrate with platforms like Moodle, Notion or Teachable.",
+    "personalizarTitulo": "Customizable and scalable",
+    "personalizarTexto": "Refine the generated content, add media, and scale your courses for any audience."
+  }
+}
