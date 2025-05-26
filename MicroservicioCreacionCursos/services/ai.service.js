@@ -1,3 +1,5 @@
+// --- START OF FILE services/ai.service.js ---
+
 /**
  * Servicio para interactuar con la API de OpenAI
  */
@@ -14,16 +16,16 @@ class AIService {
   }
 
   /**
-   * Genera el contenido completo de un curso basado en un título
+   * Genera el contenido completo de un curso basado en un título y lecciones iniciales
    * @param {string} tituloCurso - Título del curso a generar
+   * @param {string[]} leccionesIniciales - Array con los títulos de las primeras 3 lecciones
    * @returns {Promise<Object>} - Objeto con la estructura del curso generado
    */
-
-  async generarContenidoCurso(tituloCurso) {
+  async generarContenidoCurso(tituloCurso, leccionesIniciales = []) { // <-- MODIFICADO: Añadir leccionesIniciales
     try {
-      console.log(`Solicitando a la IA generar contenido para: "${tituloCurso}"...`);
+      console.log(`Solicitando a la IA generar contenido para: "${tituloCurso}" con lecciones iniciales...`);
 
-      const prompt = this.construirPrompt(tituloCurso);
+      const prompt = this.construirPrompt(tituloCurso, leccionesIniciales); // <-- MODIFICADO: Pasar leccionesIniciales
 
       const response = await axios.post(
         `${config.baseURL}/chat/completions`,
@@ -55,15 +57,13 @@ class AIService {
         throw new Error('La respuesta de la IA no contiene datos válidos');
       }
 
-      // Obtener el contenido de la respuesta
       let content = choices[0].message.content;
       console.log('Respuesta de la IA:', content);
 
-      // Limpiar el contenido de marcadores de código Markdown
       content = this.limpiarContenidoJSON(content);
 
       const contenidoJson = JSON.parse(content);
-      return this.validarEstructuraRespuesta(contenidoJson);
+      return this.validarEstructuraRespuesta(contenidoJson, leccionesIniciales); // <-- MODIFICADO: Opcional, pasar leccionesIniciales para validar
     } catch (error) {
       console.error('Error al generar contenido con la IA:', error.message);
       if (error.response) {
@@ -73,13 +73,7 @@ class AIService {
     }
   }
 
-  /**
-   * Limpia el contenido de marcadores de código Markdown
-   * @param {string} contenido - Contenido a limpiar
-   * @returns {string} - Contenido limpio
-   */
   limpiarContenidoJSON(contenido) {
-    // Eliminar los marcadores de código Markdown (```json y ```)
     return contenido
       .replace(/```json\s*/g, '')
       .replace(/```\s*$/g, '')
@@ -89,97 +83,116 @@ class AIService {
   /**
    * Construye el prompt para la IA
    * @param {string} tituloCurso - Título del curso
+   * @param {string[]} leccionesIniciales - Array con los títulos de las primeras 3 lecciones
    * @returns {string} - Prompt completo para la IA
    */
-  construirPrompt(tituloCurso) {
+  construirPrompt(tituloCurso, leccionesIniciales = []) { // <-- MODIFICADO: Añadir leccionesIniciales
+    let leccionesEspecificas = "";
+    if (leccionesIniciales && leccionesIniciales.length > 0) {
+      leccionesEspecificas = `
+Comienza con las siguientes lecciones (usa estos títulos exactos para las primeras ${leccionesIniciales.length} lecciones y luego genera el resto):
+${leccionesIniciales.map((titulo, index) => `  ${index + 1}. "${titulo}"`).join('\n    ')}
+`;
+    }
+
     return `
-    Genera el contenido completo para un curso titulado "${tituloCurso}".
-    
-    Necesito que el resultado sea en formato JSON con la siguiente estructura:
+Genera el contenido completo para un curso titulado "${tituloCurso}".
+${leccionesEspecificas} {/* <-- MODIFICADO: Insertar títulos de lecciones específicas aquí */}
+Necesito que el resultado sea en formato JSON con la siguiente estructura:
+{
+  "curso": {
+    "titulo": "Título del curso", // Asegúrate que coincida con "${tituloCurso}"
+    "descripcion": "Descripción detallada del curso",
+    "duracionHoras": "10:30", // Estimación total
+    "publicado": false
+  },
+  "creador": {
+    "nombre": "Nombre del creador", // Puedes inventar uno o usar "Profesor AI"
+    "autenticado": true
+  },
+  "lecciones": [
     {
-      "curso": {
-        "titulo": "Título del curso",
-        "descripcion": "Descripción detallada del curso",
-        "duracionHoras": "10:30",
-        "publicado": false
+      "titulo": "Título de la lección 1", // Si se proporcionaron títulos, usar el primero aquí
+      "contenido": {
+        "video": {
+          "url": "URL del video (placeholder o ejemplo)",
+          "duracion": "10:15" // Duración estimada de la lección
+        },
+        "texto": "Contenido textual detallado de la lección. Debe ser extenso y útil.",
+        "recursos": [
+          {
+            "nombre": "Nombre del recurso (ej. Guía PDF, Enlace externo)",
+            "tipo": "pdf", // o 'link', 'documento'
+            "url": "URL del recurso (placeholder o ejemplo)"
+          }
+        ]
       },
-      "creador": {
-        "nombre": "Nombre del creador",
-        "autenticado": true
-      },
-      "lecciones": [
-        {
-          "titulo": "Título de la lección 1",
-          "contenido": {
-            "video": {
-              "url": "URL del video",
-              "duracion": "10:15"
-            },
-            "texto": "Contenido textual de la lección",
-            "recursos": [
-              {
-                "nombre": "Nombre del recurso",
-                "tipo": "pdf",
-                "url": "URL del recurso"
-              }
-            ]
-          },
-          "orden": 1
-        }
-        // Incluye al menos 5 lecciones
+      "orden": 1
+    }
+    // Incluye un total de al menos 5 lecciones. Si se proporcionaron N lecciones iniciales, genera al menos 5-N lecciones adicionales.
+  ],
+  "quizzes": [
+    {
+      "titulo": "Quiz de evaluación para el curso",
+      "preguntas": [
+        "¿Pregunta 1 relacionada al contenido del curso?",
+        "¿Pregunta 2 relacionada al contenido del curso?",
+        "¿Pregunta 3 relacionada al contenido del curso?"
       ],
-      "quizzes": [
-        {
-          "titulo": "Quiz de evaluación",
-          "preguntas": [
-            "¿Pregunta 1?",
-            "¿Pregunta 2?",
-            "¿Pregunta 3?"
-          ],
-          "respuestas": [
-            "Respuesta 1",
-            "Respuesta 2",
-            "Respuesta 3"
-          ]
-        }
-        // Incluye al menos 2 quizzes
+      "respuestas": [ // Proporciona respuestas correctas para las preguntas
+        "Respuesta correcta 1",
+        "Respuesta correcta 2",
+        "Respuesta correcta 3"
       ]
     }
-    
-    Asegúrate de que:
-    1. El contenido sea educativo y relevante para el título proporcionado
-    2. Las lecciones tengan un orden lógico y progresivo
-    3. Cada lección tenga al menos un recurso real asociado y lecturas o material extensas y detalladas de apoyo para el usuario
-    4. Los quizzes tengan el mismo número de preguntas y respuestas
-    5. Las URLs referenciadas sean válidas y accesibles
-    6. La duración esté en formato "horas:minutos"
-    
-    Genera un curso completo con al menos 5 lecciones y 2 quizzes.
-    `;
+    // Incluye al menos 2 quizzes relevantes para el curso.
+  ]
+}
+
+Asegúrate de que:
+1. El contenido sea educativo y relevante para el título y las lecciones iniciales proporcionadas.
+2. Las lecciones tengan un orden lógico y progresivo. Las primeras lecciones deben usar los títulos que te he dado.
+3. Cada lección tenga contenido textual extenso y detallado, y al menos un recurso real o plausible.
+4. Los quizzes tengan el mismo número de preguntas y respuestas, y estas sean coherentes.
+5. Las URLs referenciadas pueden ser placeholders como "https://ejemplo.com/video.mp4" o "https://ejemplo.com/recurso.pdf", pero deben lucir como URLs válidas.
+6. La duración esté en formato "horas:minutos".
+
+Genera un curso completo con un total de al menos 5 lecciones (utilizando los títulos iniciales proporcionados para las primeras) y al menos 2 quizzes.
+`;
   }
 
   /**
    * Valida que la estructura de la respuesta sea correcta
    * @param {Object} respuesta - Respuesta de la IA
+   * @param {string[]} [leccionesEsperadas] - Títulos de lecciones iniciales esperadas (opcional)
    * @returns {Object} - Respuesta validada
    */
-  validarEstructuraRespuesta(respuesta) {
-    // Verificar que existan las propiedades principales
-    if (!respuesta.curso || !respuesta.creador || 
-        !respuesta.lecciones || !respuesta.quizzes) {
-      throw new Error('La estructura de la respuesta no es válida');
+  validarEstructuraRespuesta(respuesta, leccionesEsperadas = []) { // <-- MODIFICADO: Añadir leccionesEsperadas
+    if (!respuesta.curso || !respuesta.creador ||
+      !respuesta.lecciones || !respuesta.quizzes) {
+      throw new Error('La estructura de la respuesta no es válida: faltan claves principales (curso, creador, lecciones, quizzes).');
     }
 
-    // Verificar que haya al menos una lección y un quiz
-    if (!Array.isArray(respuesta.lecciones) || respuesta.lecciones.length === 0 ||
-        !Array.isArray(respuesta.quizzes) || respuesta.quizzes.length === 0) {
-      throw new Error('No se generaron lecciones o quizzes');
+    if (!Array.isArray(respuesta.lecciones) || respuesta.lecciones.length < (leccionesEsperadas.length > 0 ? leccionesEsperadas.length : 1) ||
+      !Array.isArray(respuesta.quizzes) || respuesta.quizzes.length === 0) {
+      throw new Error(`No se generaron suficientes lecciones o quizzes. Se esperaban al menos ${leccionesEsperadas.length > 0 ? leccionesEsperadas.length : 1} lecciones y 1 quiz.`);
+    }
+    
+    // Validación opcional para los títulos de las lecciones iniciales
+    if (leccionesEsperadas.length > 0) {
+      for (let i = 0; i < leccionesEsperadas.length; i++) {
+        if (!respuesta.lecciones[i] || respuesta.lecciones[i].titulo !== leccionesEsperadas[i]) {
+          console.warn(`Advertencia: El título de la lección ${i + 1} ("${respuesta.lecciones[i]?.titulo}") no coincide con el esperado ("${leccionesEsperadas[i]}"). La IA pudo haberlo modificado.`);
+          // Podrías lanzar un error aquí si es crítico:
+          // throw new Error(`El título de la lección ${i + 1} no coincide con el esperado.`);
+        }
+      }
     }
 
-    // Verificar que el curso tenga los campos requeridos
-    if (!respuesta.curso.titulo || !respuesta.curso.descripcion || 
-        !respuesta.curso.duracionHoras) {
-      throw new Error('Faltan datos requeridos en el curso');
+
+    if (!respuesta.curso.titulo || !respuesta.curso.descripcion ||
+      !respuesta.curso.duracionHoras) {
+      throw new Error('Faltan datos requeridos en el curso (título, descripción, duración).');
     }
 
     return respuesta;
@@ -187,3 +200,4 @@ class AIService {
 }
 
 module.exports = new AIService();
+// --- END OF FILE services/ai.service.js ---
