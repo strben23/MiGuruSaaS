@@ -1,10 +1,8 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: [
-    '@nuxtjs/tailwindcss', // Módulo para Tailwind CSS
-    '@pinia/nuxt',          // Módulo para Pinia
-    '@nuxtjs/i18n',
-  ],
+  modules: [// Módulo para Tailwind CSS
+  '@nuxtjs/tailwindcss', // Módulo para Pinia
+  '@pinia/nuxt', '@nuxtjs/i18n', '@nuxt/scripts'],
   css: [
     '@/assets/css/tailwind.css' // Archivo CSS de Tailwind
   ],
@@ -22,5 +20,9 @@ export default defineNuxtConfig({
 
     public: {
     }
+  },
+  devServer: {
+    port: 3000, // Puerto del servidor de desarrollo
+    host: '0.0.0.0'
   },
 });

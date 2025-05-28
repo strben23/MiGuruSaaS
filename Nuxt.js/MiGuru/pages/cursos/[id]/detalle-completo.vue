@@ -1,4 +1,4 @@
-<!-- pages/cursos/[id]/detalle-completo.vue -->
+pages/cursos/[id]/detalle-completo.vue
 <template>
   <div v-if="layout === 'dashboardlayout'" class="p-4 sm:p-6 md:p-8">
     <div v-if="isLoading" class="text-center py-20">
@@ -53,6 +53,7 @@
 
               <div v-if="leccion.contenido?.video" class="mt-3">
                 <h4 class="font-semibold text-slate-200">Video:</h4>
+                <YoutubePlayer v-if="leccion.contenido.video.url" :video-id="leccion.contenido.video.url.split('v=')[1]" class="w-full h-64 mb-3" />
                 <p>URL: <a :href="leccion.contenido.video.url" target="_blank" class="text-sky-400 hover:underline">{{ leccion.contenido.video.url }}</a></p>
                 <p>Duración: {{ leccion.contenido.video.duracion }}</p>
               </div>
