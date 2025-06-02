@@ -4,7 +4,7 @@ const { MongoClient } = require('mongodb');
 
 const JWT_SECRET = 'claveSecreta';
 const MONGO_URL = 'mongodb://localhost:27017';
-const DB_NAME = 'usuariosDB';
+const DB_NAME = 'UsuariosMiGuru';
 
 async function main() {
   const mongo = new MongoClient(MONGO_URL);

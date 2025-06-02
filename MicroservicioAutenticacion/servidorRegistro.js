@@ -12,8 +12,8 @@ const JWT_SECRET = 'claveSecreta';
 
 // Definición del esquema y modelo de usuario
 const usuarioSchema = new mongoose.Schema({
-  nombre: String,
   correo: { type: String, unique: true },
+  password: String,
   rol: String,
   idioma: String,
 });
@@ -43,10 +43,12 @@ conectarRabbit();
 
 // Ruta para registrar usuarios
 app.post('/api/usuarios/nuevo', async (req, res) => {
-  const { nombre, correo, rol, idioma } = req.body;
+  const { correo, password, rol, idioma } = req.body;
 
-  if (!nombre || !correo) {
-    return res.status(400).json({ error: 'Faltan campos obligatorios (nombre y correo)' });
+  if (
+  typeof correo !== 'string' || correo.trim() === ''
+) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios (password y correo)' });
   }
 
   try {
@@ -58,8 +60,8 @@ app.post('/api/usuarios/nuevo', async (req, res) => {
 
     // No existe, así que publicamos el mensaje a RabbitMQ
     const datosUsuario = {
-      nombre,
       correo,
+      password,
       rol: ['estudiante', 'creador', 'administrador'].includes(rol) ? rol : 'estudiante',
       idioma: ['es', 'en'].includes(idioma) ? idioma : 'es',
     };
@@ -81,22 +83,22 @@ app.post('/api/usuarios/nuevo', async (req, res) => {
 
 // Ruta para login de usuario
 app.post('/api/usuarios/login', async (req, res) => {
-  const { correo, nombre } = req.body;
+  const { correo, password} = req.body;
 
-  if (!correo || !nombre) {
-    return res.status(400).json({ error: 'Se requieren nombre y correo' });
+  if (!correo) {
+    return res.status(400).json({ error: 'Se requieren nombre y contraseña' });
   }
 
   try {
-    const usuario = await Usuario.findOne({ correo, nombre });
+    const usuario = await Usuario.findOne({ correo, password });
 
     if (!usuario) {
       return res.status(401).json({ error: 'Usuario o correo incorrecto' });
     }
 
     const token = jwt.sign({
-      nombre: usuario.nombre,
       correo: usuario.correo,
+      password: usuario.password,
       rol: usuario.rol,
       idioma: usuario.idioma
     }, JWT_SECRET, { algorithm: 'HS256', noTimestamp: true });
@@ -105,8 +107,8 @@ app.post('/api/usuarios/login', async (req, res) => {
     res.status(200).json({
       mensaje: `Login exitoso para: ${correo}`,
       usuario: {
-        nombre: usuario.nombre,
         correo: usuario.correo,
+        password: usuario.password,
         rol: usuario.rol,
         idioma: usuario.idioma
       },
